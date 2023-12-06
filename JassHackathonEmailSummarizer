@@ -1,0 +1,95 @@
+import imaplib # Internet Message Access Protocol
+import email # Login & EMail Functions)
+from email.header import decode_header
+from datetime import datetime
+from datetime import timedelta # TIme Frequency Updates for Emails
+import tkinter as tk # UI/UX
+from tkinter import scrolledtext # UI/UX WIDGET
+
+
+# set time parameters for email updates
+
+current_time = datetime.now()
+update_frequency = timedelta(hours=4)
+
+    # Time Period of Frequency for Email Updates
+time_inpast_4hrs = current_time - update_frequency
+
+# Testing for datetime library
+# print(current_time, "o' clock")
+# print(time_inpast_4hrs, "o' clock")
+
+# provide program credential access to user (AJ - name of user)
+
+aj_username_schoolemail = "761314@pdsb.net" #
+aj_pass_schoolemail = "    " #     ***** UPDATE ONLY DURING TESTING *****
+aj_mail_serveraccess = "imap.gmail.com"
+
+# authorize login to mail provider 
+
+mail_access = imaplib.IMAP4_SSL(aj_mail_serveraccess, port=993) #Gmails SSL PORT - SSL (Secure Sockets Layer) - communication encryption layer
+mail_access.login(aj_username_schoolemail, aj_pass_schoolemail)
+
+root = tk.T()
+root.title("Your Email Summary!")
+
+display_text = scrolledtext.ScrolledText(root, width=100, height=30)
+display_text.pack(padx=20, pady=20)
+
+# Initiate try statement for any CAPTCHA's, 2FA's or potential Errors
+def fetch_display_emails():
+    try:
+        mail_access = imaplib.IMAP4_SSL(aj_mail_serveraccess, port=993) #Gmails SSL PORT - SSL (Secure Sockets Layer) - communication encryption layer
+        mail_access.login(aj_username_schoolemail, aj_pass_schoolemail)
+
+        
+        # SELECT MAILBOX TO INBOX
+
+        mail_access.select("Inbox")
+
+        result, data = mail_access.search(None, "(Since \"{}\")".format(time_inpast_4hrs)) # Terminal Formatting For Time Display of Email Update
+
+        # Summarization of email and retreiver program loop
+
+        def EmailSummarize():
+            # loop
+            for num in data[0].split():
+                result, aj_email_data = mail_access.fetch(num, "(RFC822)") # IMAP REQUEST CODE FOR RAW EMAIL DATA AND FORMATTING
+                unprocessed_email = aj_email_data[0][1] # Binary Classification Algorithm For Email
+                raw_email = email.message_from_bytes(unprocessed_email) # Retrieve textual data from email
+
+                # Extraction & Display of Email Details
+                email_subject, emailinfo_encoding = decode_header(raw_email["Subject"])[0] # Attribute heading and subject data to an encoding
+                subject = email_subject.decode(emailinfo_encoding) if emailinfo_encoding else email_subject  # Conditional Statement Embed within
+                                                                                                # Email Retreiver Loop
+                sender = raw_email.get("From")
+                date_sent = raw_email.get("Date")
+                body = raw_email.get_payload()
+
+                print("Subject: ", subject) # Attribute title and email subject for quick readability
+                print("From: ", raw_email.get("From")) # Extract email sender info
+                print("Date: ", raw_email.get("Date")) # Extract email date info
+                print("Body: ", raw_email.get_payload()) # Payload gets all other contextual data from email for display
+
+                display_text.insert(tk.END, f"Subject: {subject}\n")
+                display_text.insert(tk.END, f"From: {sender}\n")
+                display_text.insert(tk.END, f"Date: {date_sent}\n")
+                display_text.insert(tk.END, f"Info: {body}\n")
+
+        EmailSummarize()
+
+    except Exception as e:
+        print(f"Error:{e}") # F string to incorporate exception
+    finally:
+        mail_access.logout # logout fucntion from "email" library
+
+
+# WIDGET UI/UX
+
+fetch_button = tk.Button(root, text="Fetch Emails", command=fetch_display_emails) # Call Main Function
+fetch_button.pack(pady=20)
+
+root.mainloop() # - EXECUTE UI/UX Loop using tkinter library
+
+# END CODE
+ 
