@@ -1,2 +1,157 @@
 // Check out my Autodesk Instructable (DIY Tutorial) On how to make my project: Armduino - a Robotic Mechanical Arm using Arduino and Servo Motors: 
 // https://www.instructables.com/Armduino-a-Controllable-Robotic-Arm-System-Using-M/
+
+// C++ Code by Arjan Waraich
+//
+
+#include <Servo.h>
+
+// Servos
+Servo base;
+Servo arm1;
+Servo arm2;
+
+// Servo Signals
+const int base_pin = 9;
+const int arm1_pin = 10;
+const int arm2_pin = 11;
+
+// Joystick Signals (Analog)
+  
+const int base_joy = A1; // y axis of joystick**
+const int arm1_joy = A0; // x axis of joystick**               
+const int arm2_pot = A2;
+
+// RGB LED + Values
+
+int green_pin = 3;
+int red_pin = 4;
+int blue_pin = 8;
+
+// Joystick
+
+int base_axis; // x-axis
+int base_angle;
+
+int arm1_axis; // y-axis
+int arm1_angle;
+
+int arm2_axis;
+int arm2_angle;
+
+int init_x = 90; // Initial Degrees for when Arm Starts
+int init_y = 90;
+int init_z_pot = 90;
+
+// int base_moving;
+// int arm1_moving;
+// int arm2_moving;
+
+void setup() {
+  // put your setup code here, to run once:
+  
+  pinMode(base_joy, INPUT);
+  pinMode(arm1_joy, INPUT);
+  pinMode(arm2_pot, INPUT); 
+
+  pinMode(green_pin, OUTPUT);
+  pinMode(red_pin, OUTPUT);
+  pinMode(blue_pin, OUTPUT);
+  
+  base.attach(base_pin);
+  arm1.attach(arm1_pin);
+  arm2.attach(arm2_pin);
+
+  base.write(init_y); // Writing Servos to Initial Degree for when Arm Starts
+  arm1.write(init_x);
+  arm2.write(init_z_pot);
+  
+  Serial.begin(9600); // Debugging
+}
+
+// Color Functions for RGB - CA RGB Thus DigitalWrite Inversions
+
+void red() { 
+ 
+   digitalWrite(red_pin, LOW);
+   digitalWrite(blue_pin, HIGH);
+   digitalWrite(green_pin, HIGH);
+ 
+}
+
+void blue() {
+ 
+   digitalWrite(red_pin, HIGH);
+   digitalWrite(blue_pin, LOW);
+   digitalWrite(green_pin, HIGH);
+ 
+}
+
+void pink() { // Supposed to be green but appears as pink, so function referred to as pink
+ 
+   digitalWrite(red_pin, LOW);
+   digitalWrite(blue_pin, LOW);
+   digitalWrite(green_pin, HIGH);
+ 
+}
+
+void rgb_off() { // Supposed to be green but appears as pink, so function referred to as pink
+ 
+   digitalWrite(red_pin, HIGH);
+   digitalWrite(blue_pin, HIGH);
+   digitalWrite(green_pin, HIGH);
+ 
+}
+
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  //checkMovement(); 
+
+  base_axis = analogRead(base_joy); // y axis
+  base_angle = map(base_axis, 0, 1023, 0, 180); // 180 Degrees of Movement in a Servo
+
+  arm1_axis = analogRead(arm1_joy); // x axis
+  arm1_angle = map(arm1_axis, 0, 1023, 0, 180);
+
+  arm2_axis = analogRead(arm2_pot);
+  arm2_angle = map(arm2_axis, 0, 1023, 0, 180);
+  
+  // Servo Movement Update
+  
+  base.write(base_angle);
+  
+  arm1.write(arm1_angle);
+
+  arm2.write(arm2_angle);
+  
+  // RGB Operation Conditionals + Movement Detection
+
+  if (base_angle != init_y) {
+
+    red(); // Base servo moved
+
+  } else if (arm1_angle != init_x) {
+
+    blue(); // Arm1 servo moved
+
+  } else if (arm2_angle != init_z_pot) {
+
+    pink(); // Arm2 servo moved
+
+  } else {
+
+    rgb_off();
+
+  }
+
+  Serial.println(base_angle); // Move up and down - "y" axis
+  Serial.println(arm1_angle); // Move sided to side - "x" axis
+  Serial.println(arm2_angle); // Potentiometer - Read Properly
+
+  
+  delay(10);
+  
+}
+
+
