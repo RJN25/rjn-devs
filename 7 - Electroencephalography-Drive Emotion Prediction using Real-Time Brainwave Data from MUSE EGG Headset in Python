@@ -1,0 +1,165 @@
+#### Real-Life Emotion Prediction System Using Electroencephalography Neural Readings, MUSE Headpand, & Python
+## Check out the MUSE EEG headband (readings electric impulses from your brain) - https://choosemuse.com/
+## .CSV raw unprocessed data was not included here - was extracted from a real-life test on a friend using Muse biosignal extraction app
+
+#### MUSE HEADBAND SETUP AND TESTING
+
+Recording Software Execution:
+"""
+Record from a Stream
+This example shows how to record data from an existing Muse LSL stream
+"""
+from muselsl import record
+if __name__ == "__main__":
+    # Note: an existing Muse LSL stream is required
+    record(60)
+    # Note: Recording is synchronous, so code here will not execute until the stream has been closed
+    print('Recording has ended')
+
+
+
+
+# -*- coding: utf-8 -*-
+"""
+Estimate Emotion from Band Powers
+This example shows how to buffer, epoch, and transform EEG data from a single
+electrode into values for each of the classic frequencies (e.g. alpha, beta, theta)
+Furthermore, it shows how ratios of the band powers can be used to estimate emotions.
+Adapted and modified from https://github.com/NeuroTechX/bci-workshop
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+from pylsl import StreamInlet, resolve_byprop
+import utils
+class Band:
+    Delta = 0
+    Theta = 1
+    Alpha = 2
+    Beta = 3
+# Experimental parameters
+BUFFER_LENGTH = 5
+EPOCH_LENGTH = 1
+OVERLAP_LENGTH = 0.8
+SHIFT_LENGTH = EPOCH_LENGTH - OVERLAP_LENGTH
+INDEX_CHANNEL = [0]
+def estimate_emotion(alpha_metric):
+    # Use the alpha_metric to estimate emotion
+    # Adjust the threshold and modify logic as needed
+    threshold = 1.5
+    if alpha_metric > threshold:
+        return "Happy"
+    else:
+        return "Angry"
+if __name__ == "__main__":
+    # Connect to EEG stream
+    print('Looking for an EEG stream...')
+    streams = resolve_byprop('type', 'EEG', timeout=2)
+    if len(streams) == 0:
+        raise RuntimeError('Can\'t find EEG stream.')
+    print("Start acquiring data")
+    inlet = StreamInlet(streams[0], max_chunklen=12)
+    eeg_time_correction = inlet.time_correction()
+    info = inlet.info()
+    fs = int(info.nominal_srate())
+    # Initialize buffers
+    eeg_buffer = np.zeros((int(fs * BUFFER_LENGTH), 1))
+    filter_state = None
+    n_win_test = int(np.floor((BUFFER_LENGTH - EPOCH_LENGTH) / SHIFT_LENGTH + 1))
+    band_buffer = np.zeros((n_win_test, 4))
+    try:
+        while True:
+            # Acquire data
+            eeg_data, timestamp = inlet.pull_chunk(timeout=1, max_samples=int(SHIFT_LENGTH * fs))
+            ch_data = np.array(eeg_data)[:, np.array(INDEX_CHANNEL)]
+            eeg_buffer, filter_state = utils.update_buffer(eeg_buffer, ch_data, notch=True, filter_state=filter_state)
+            # Compute band powers
+            data_epoch = utils.get_last_data(eeg_buffer, EPOCH_LENGTH * fs)
+            band_powers = utils.compute_band_powers(data_epoch, fs)
+            band_buffer, _ = utils.update_buffer(band_buffer, np.asarray([band_powers]))
+            # Compute the average band powers for all epochs in buffer
+            smooth_band_powers = np.mean(band_buffer, axis=0)
+            # Alpha Protocol
+            alpha_metric = smooth_band_powers[Band.Alpha] / smooth_band_powers[Band.Delta]
+            print('Alpha Relaxation: ', alpha_metric)
+            # Estimate Emotion
+            emotion = estimate_emotion(alpha_metric)
+            print('Estimated Emotion: ', emotion)
+    except KeyboardInterrupt:
+        print('Closing!')
+
+NeuroTechX/bci-workshop
+Material for the BCI Workshop held at District 3 in May 2015 by BCI Montréal.
+Stars
+85
+Language
+Python
+Added by GitHub
+1:24
+BLUE MUSE & PETAL METRICS:
+# -*- coding: utf-8 -*-
+"""
+Estimate Emotion from Band Powers
+This example shows how to buffer, epoch, and transform EEG data from a single
+electrode into values for each of the classic frequencies (e.g. alpha, beta, theta)
+Furthermore, it shows how ratios of the band powers can be used to estimate emotions.
+Adapted from https://github.com/NeuroTechX/bci-workshop
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+from pylsl import StreamInlet, resolve_byprop
+import utils
+class Band:
+    Delta = 0
+    Theta = 1
+    Alpha = 2
+    Beta = 3
+# Experimental parameters
+BUFFER_LENGTH = 5
+EPOCH_LENGTH = 1
+OVERLAP_LENGTH = 0.8
+SHIFT_LENGTH = EPOCH_LENGTH - OVERLAP_LENGTH
+INDEX_CHANNEL = [0]
+def estimate_emotion(alpha_metric):
+    # Use the alpha_metric to estimate emotion
+    # Adjust the threshold and modify logic as needed
+    threshold = 1.5
+    if alpha_metric > threshold:
+        return "Happy"
+    else:
+        return "Angry"
+if __name__ == "__main__":
+    # Connect to EEG stream
+    print('Looking for an EEG stream...')
+    streams = resolve_byprop('type', 'EEG', timeout=2)
+    if len(streams) == 0:
+        raise RuntimeError('Can\'t find EEG stream.')
+    print("Start acquiring data")
+    inlet = StreamInlet(streams[0], max_chunklen=12)
+    eeg_time_correction = inlet.time_correction()
+    info = inlet.info()
+    fs = int(info.nominal_srate())
+    # Initialize buffers
+    eeg_buffer = np.zeros((int(fs * BUFFER_LENGTH), 1))
+    filter_state = None
+    n_win_test = int(np.floor((BUFFER_LENGTH - EPOCH_LENGTH) / SHIFT_LENGTH + 1))
+    band_buffer = np.zeros((n_win_test, 4))
+    try:
+        while True:
+            # Acquire data
+            eeg_data, timestamp = inlet.pull_chunk(timeout=1, max_samples=int(SHIFT_LENGTH * fs))
+            ch_data = np.array(eeg_data)[:, INDEX_CHANNEL]
+            eeg_buffer, filter_state = utils.update_buffer(eeg_buffer, ch_data, notch=True, filter_state=filter_state)
+            # Compute band powers
+            data_epoch = utils.get_last_data(eeg_buffer, EPOCH_LENGTH * fs)
+            band_powers = utils.compute_band_powers(data_epoch, fs)
+            band_buffer, _ = utils.update_buffer(band_buffer, np.asarray([band_powers]))
+            # Compute the average band powers for all epochs in buffer
+            smooth_band_powers = np.mean(band_buffer, axis=0)
+            # Alpha Protocol
+            alpha_metric = smooth_band_powers[Band.Alpha] / smooth_band_powers[Band.Delta]
+            print('Alpha Relaxation: ', alpha_metric)
+            # Estimate Emotion
+            emotion = estimate_emotion(alpha_metric)
+            print('Estimated Emotion: ', emotion)
+    except KeyboardInterrupt:
+        print('Closing!')
