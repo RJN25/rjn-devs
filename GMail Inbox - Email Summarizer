@@ -21,13 +21,15 @@ time_inpast_4hrs = current_time - update_frequency
 
 # provide program credential access to user (AJ - name of user)
 
-aj_username_schoolemail = "761314@pdsb.net" #
-aj_pass_schoolemail = "    " #     ***** UPDATE ONLY DURING TESTING *****
+# aj = me - Arjan Waraich! 
+
+aj_username_schoolemail = "waraicharjan97@gmail.com" # My gmail account - Feel free to email me!
+aj_pass_schoolemail = " placeholder " #     ***** UPDATE ONLY DURING TESTING - BE WATCHFUL OF PRIVACY *****
 aj_mail_serveraccess = "imap.gmail.com"
 
 # authorize login to mail provider 
 
-mail_access = imaplib.IMAP4_SSL(aj_mail_serveraccess, port=993) #Gmails SSL PORT - SSL (Secure Sockets Layer) - communication encryption layer
+mail_access = imaplib.IMAP4_SSL(aj_mail_serveraccess, port=993) # Gmails SSL PORT - SSL (Secure Sockets Layer) - communication encryption layer
 mail_access.login(aj_username_schoolemail, aj_pass_schoolemail)
 
 root = tk.T()
