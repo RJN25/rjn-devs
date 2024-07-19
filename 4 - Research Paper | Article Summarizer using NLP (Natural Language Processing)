@@ -1,0 +1,135 @@
+# This is an News Article / Research Paper Summarizer - Arjan Waraich
+# Built on Natural Language Processing (Parsing, Sentiment Analysis & Tokenization) Machine Learning Data Extraction
+
+import tkinter as tk
+import nltk # Natural language tool kit
+
+from textblob import TextBlob
+from newspaper import Article
+
+def summarize():
+
+    # nltk.download('punkt') # Abstract Class for Sentence Tokenization - Logical Segmentation of Word Strings
+
+
+    url = user_input.get('1.0', "end").strip() # Initiating String
+
+    article = Article(url)
+
+    article.download()
+    article.parse()
+
+    article.nlp() # Natural Language Processing Function - simplified, as part of nltk
+
+    title.config(state='normal') # Re-engage states
+    author.config(state='normal')
+    publication_date.config(state='normal')
+    summary.config(state='normal')
+    sentiment_analysis.config(state='normal')
+
+    title.delete('1.0', 'end')
+    title.insert('1.0', article.title)
+
+
+    author.delete('1.0', 'end')
+    author.insert('1.0', article.authors)
+
+
+    publication_date.delete('1.0', 'end')
+    publication_date.insert('1.0', article.publish_date)
+
+
+    summary.delete('1.0', 'end')
+    summary.insert('1.0', article.summary)
+
+
+    analysis = TextBlob(article.text) # provides parsed text
+    # print(analysis.polarity)
+    sentiment_analysis.delete('1.0', 'end')
+    sentiment_analysis.insert('1.0', f'Polarity: {analysis.polarity}, Sentiment Analysis: {"Positive" if analysis.polarity > 0 else "Negative" if analysis.polarity < 0 else "Neutral" }') # Range 
+
+    title.config(state='disabled') # Dis-engage states - only when NEW URL is entered, thus old information is jetted
+    author.config(state='disabled')
+    publication_date.config(state='disabled')
+    summary.config(state='disabled')
+    sentiment_analysis.config(state='disabled')
+
+    # Add to GUI 
+    # print(f'Title {article.title}')
+    # print(f'Authors {article.authors}')
+    # print(f'Date of Publication {article.publish_date}') # Relevancy of Information
+    # print(f'Article Summary {article.summary}') # Highlight Relevant Information from Text (Parsing)
+
+# GUI
+
+root = tk.Tk()
+root.title = ("Article Summarizer")
+root.geometry = ('1400x800')
+# root.configure(bg='#28282B')
+# root.maxsize
+
+# Summarize Attributes  
+
+# Title
+
+title_label = tk.Label(root, text="Title")
+title_label.pack()
+
+title = tk.Text(root, height=1, width=140)
+title.config(state='disabled', bg='#dddddd')
+title.pack()
+
+# Authors
+
+author_label = tk.Label(root, text="Authors")
+author_label.pack()
+
+author = tk.Text(root, height=1, width=140)
+author.config(state='disabled', bg='#dddddd')
+author.pack()
+
+
+# Publication Date
+
+publication_label = tk.Label(root, text="Date of Publication")
+publication_label.pack()
+
+publication_date = tk.Text(root, height=1, width=140)
+publication_date.config(state='disabled', bg='#dddddd')
+publication_date.pack()
+
+
+# Article Summary
+
+summary_label = tk.Label(root, text="Article Summary")
+summary_label.pack()
+
+summary = tk.Text(root, height=20, width=140)
+summary.config(state='disabled', bg='#dddddd')
+summary.pack()
+
+# Sentiment Analysis & Scale
+
+sentiment_analysis_label = tk.Label(root, text="Sentiment Analysis Factor (Bias of Speech)") # Importance of Information?
+sentiment_analysis_label.pack()
+
+sentiment_analysis = tk.Text(root, height=1, width=140)
+sentiment_analysis.config(state='disabled', bg='#dddddd')
+sentiment_analysis.pack()
+
+# User Input
+
+user_label = tk.Label(root, text="URL Input") # Importance of Information?
+user_label.pack()
+
+user_input = tk.Text(root, height=1, width=140)
+user_input.pack()
+
+# Link Button
+
+button = tk.Button(root, text="Summarize!", command=summarize)
+button.pack()
+
+root.mainloop()
+
+# End Code
