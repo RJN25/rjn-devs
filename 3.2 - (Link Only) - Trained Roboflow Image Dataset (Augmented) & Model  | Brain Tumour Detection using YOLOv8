@@ -1,0 +1,6 @@
+## Training an augmented (to certain fMRI and MRI-Like parameters, features and image characterisitcs) dataset (with Roboflow) of brain tumour scans to be segmented, sorted, and classified 
+## - integrated with YOLOv8 computer vision model. 
+## Note: it is a **W.I.P**
+
+
+## https://universe.roboflow.com/arjans-workspace/brain-tumor-detection-w-yolov8/dataset/1 
