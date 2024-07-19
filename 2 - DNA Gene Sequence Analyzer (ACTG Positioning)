@@ -1,0 +1,53 @@
+from Bio import Seq
+from Bio.SeqUtils import MeltingTemp
+from Bio.SeqUtils import GC
+from Bio.Seq import Seq
+
+def analyze_gene_sequence(sequence):
+    # Perform sequence analysis here
+    # I used Biopython functions and algorithms specific to my analysis
+
+    # Calculate the melting temperature (Tm) and GC content
+    melting_temp = MeltingTemp.Tm_NN(sequence)
+    gc_content = GC(sequence)
+
+    # Identify potential target sites
+    target_sites = []
+    pam = "GG"
+    target_length = 20
+
+    for i in range(len(sequence) - target_length + 1):
+        target = sequence[i:i + target_length]
+        if pam in target:
+            target_sites.append((i, target))
+
+    # Perform off-target analysis
+    off_target_sites = []
+
+    for site in target_sites:
+        off_target_count = 0
+        for i in range(len(sequence) - target_length + 1):
+            if i != site[0] and sequence[i:i + target_length] == site[1]:
+                off_target_count += 1
+        off_target_sites.append((site[0], site[1], off_target_count))
+
+    # Return the analysis results
+    return melting_temp, gc_content, target_sites, off_target_sites
+
+# User input or file input
+sequence = input("Enter the DNA sequence: ")
+
+# Analyze the gene sequence
+melting_temp, gc_content, target_sites, off_target_sites = analyze_gene_sequence(sequence)
+
+# Display the results
+print("Melting Temperature: {:.2f}°C".format(melting_temp))
+print("GC Content: {:.2f}%".format(gc_content))
+
+print("\nTarget Sites:")
+for site in target_sites:
+    print("Position: {}, Target Sequence: {}".format(site[0], site[1]))
+
+print("\nOff-target Sites:")
+for site in off_target_sites:
+    print("Position: {}, Target Sequence: {}, Off-target Count: {}".format(site[0], site[1], site[2]))
